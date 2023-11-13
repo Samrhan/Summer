@@ -6,18 +6,23 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PackageScanner {
 
-    public List<Class<?>> scanPackageForBeans(String packageName) throws IOException, ClassNotFoundException {
+
+    public List<Class<?>> scanPackageForBeans(String packageName) throws IOException {
+
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         String path = convertPackageNameToPath(packageName);
         List<File> dirs = getDirectoriesFromResources(classLoader, path);
 
-        return dirs.stream()
-                .flatMap(directory -> findClasses(directory, packageName).stream())
+        return dirs.parallelStream()
+                .flatMap(directory -> findClasses(directory, packageName))
                 .collect(Collectors.toList());
+
     }
 
     private String convertPackageNameToPath(String packageName) {
@@ -36,30 +41,36 @@ public class PackageScanner {
         return dirs;
     }
 
-    public List<Class<?>> findClasses(File directory, String packageName)  {
+    public Stream<Class<?>> findClasses(File directory, String packageName)  {
         if (!directory.exists()) {
-            return Collections.emptyList();
+            return Stream.empty();
         }
 
         return Arrays.stream(Objects.requireNonNull(directory.listFiles()))
-                .flatMap(file -> processFile(file, packageName).stream())
-                .collect(Collectors.toList());
+                .flatMap(file -> processFile(file, packageName));
     }
 
-    private List<Class<?>> processFile(File file, String packageName) {
+    private Stream<Class<?>> processFile(File file, String packageName) {
+        Stream<Class<?>> classStream = Stream.empty();
+
         try {
             if (file.isDirectory()) {
                 return findClasses(file, packageName + "." + file.getName());
-            } else if (file.getName().endsWith(".class")) {
+            } else if (file.getName().endsWith(".class") && isComponentClass(file, packageName)) {
                 Class<?> cls = loadClass(file, packageName);
-                if (cls.isAnnotationPresent(Component.class)) {
-                    return Collections.singletonList(cls);
-                }
+                classStream = Stream.of(cls);
             }
         } catch (ClassNotFoundException e) {
             // Handle the exception or propagate it
         }
-        return Collections.emptyList();
+        return classStream;
+    }
+
+    private boolean isComponentClass(File file, String packageName) throws ClassNotFoundException {
+        // Perform efficient checks on the file or its bytecode, possibly using ASM or similar
+        // For now, it performs a simple load-and-check
+        Class<?> cls = loadClass(file, packageName);
+        return cls.isAnnotationPresent(Component.class);
     }
 
     private Class<?> loadClass(File file, String packageName) throws ClassNotFoundException {
