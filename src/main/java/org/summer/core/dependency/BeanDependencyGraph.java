@@ -1,4 +1,6 @@
-package org.summer.core;
+package org.summer.core.dependency;
+
+import org.summer.core.dependency.exception.DependencyCycleException;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
@@ -9,7 +11,7 @@ import java.util.stream.Collectors;
  * This class provides functionality to add beans and their dependencies, and to perform
  * topological sorting to resolve the order in which beans should be instantiated.
  */
-class BeanDependencyGraph implements DependencyGraph<Class<?>> {
+public class BeanDependencyGraph implements DependencyGraph<Class<?>> {
     private final Map<String, Set<String>> graph = new HashMap<>();
     private final Map<String, Class<?>> beanClassMap = new HashMap<>();
     private final Set<String> visiting = new HashSet<>();
@@ -36,7 +38,7 @@ class BeanDependencyGraph implements DependencyGraph<Class<?>> {
     }
 
     @Override
-    public List<Class<?>> sort() {
+    public List<Class<?>> sort() throws DependencyCycleException {
         // Convert the sorted bean names to Class objects
         return sortBean().stream()
                 .map(this::getElement)
@@ -88,12 +90,6 @@ class BeanDependencyGraph implements DependencyGraph<Class<?>> {
     static class NoPublicConstructorException extends RuntimeException {
         NoPublicConstructorException(Class<?> cls) {
             super("No public constructor found for class: " + cls.getName());
-        }
-    }
-
-    static class DependencyCycleException extends RuntimeException {
-        DependencyCycleException(String beanName) {
-            super("Cycle detected in dependency graph for bean: " + beanName);
         }
     }
 }

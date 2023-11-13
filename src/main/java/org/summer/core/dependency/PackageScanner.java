@@ -1,4 +1,4 @@
-package org.summer.core;
+package org.summer.core.dependency;
 
 import org.summer.core.annotation.Component;
 

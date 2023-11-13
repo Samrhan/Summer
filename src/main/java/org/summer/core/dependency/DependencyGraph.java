@@ -1,6 +1,6 @@
-package org.summer.core;
+package org.summer.core.dependency;
 
-import org.summer.core.exception.DependencyCycleException;
+import org.summer.core.dependency.exception.DependencyCycleException;
 
 import java.util.List;
 
