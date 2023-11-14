@@ -36,9 +36,6 @@ A directed graph that represents the dependency relationships between beans. Thi
 ### PackageScanner
 Responsible for traversing the package structure to find classes marked with `@Component`.
 
-### DependencyGraph Interface
-Defines the contract for creating and manipulating a graph of dependencies, including adding elements and sorting the graph to resolve the instantiation order.
-
 ### Component Annotation
 Marks a class as a candidate for being a bean managed by the IoC container. Classes marked with this annotation will be automatically detected and managed by the framework.
 
