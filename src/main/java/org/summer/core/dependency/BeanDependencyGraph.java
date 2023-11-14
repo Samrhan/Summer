@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Represents a dependency graph for beans, typically used in dependency injection frameworks.
+ * Represents a dependency graph for beans.
  * This class provides functionality to add beans and their dependencies, and to perform
  * topological sorting to resolve the order in which beans should be instantiated.
  */
