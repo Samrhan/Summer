@@ -2,8 +2,13 @@ package org.summer.core.dependency;
 
 import org.summer.core.dependency.exception.DependencyCycleException;
 
-import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -14,82 +19,78 @@ import java.util.stream.Collectors;
 public class BeanDependencyGraph implements DependencyGraph<Class<?>> {
     private final Map<String, Set<String>> graph = new HashMap<>();
     private final Map<String, Class<?>> beanClassMap = new HashMap<>();
-    private final Set<String> visiting = new HashSet<>();
 
     /**
      * Adds a bean class to the graph, analyzing its constructor to determine dependencies.
+     *
      * @param cls The class of the bean to be added.
      */
     @Override
-    public void addElement(Class<?> cls) {
-        addBeanClass(cls); // Assuming addBeanClass is already defined
+    public void addElement(Class<?> cls, List<Class<?>> dependencies) {
+        addBeanClass(cls, dependencies); // Assuming addBeanClass is already defined
     }
 
-    void addBeanClass(Class<?> cls) {
-        Constructor<?>[] constructors = cls.getConstructors();
-        if (constructors.length == 0) {
-            throw new NoPublicConstructorException(cls);
-        }
-        Constructor<?> constructor = constructors[0];
-        graph.put(cls.getName(), Arrays.stream(constructor.getParameterTypes())
+    void addBeanClass(Class<?> cls, List<Class<?>> dependencies) {
+        graph.put(cls.getName(), dependencies.stream()
                 .map(Class::getName)
                 .collect(Collectors.toSet()));
         beanClassMap.put(cls.getName(), cls);
     }
 
     @Override
-    public List<Class<?>> sort() throws DependencyCycleException {
+    public List<Class<?>> build() throws DependencyCycleException {
         // Convert the sorted bean names to Class objects
-        return sortBean().stream()
+         return topologicalSort()
+                .stream()
                 .map(this::getElement)
                 .collect(Collectors.toList());
     }
+
     /**
      * Sorts the beans in a way that respects their dependencies.
+     *
      * @return A list of sorted bean names.
      * @throws DependencyCycleException if a dependency cycle is detected.
      */
-    List<String> sortBean() {
+    List<String> topologicalSort() {
         Set<String> visited = new HashSet<>();
-        List<String> sortedBeans = new ArrayList<>();
+        Set<String> visiting = new HashSet<>();
+        List<String> sortedBeans = new LinkedList<>();
+
         for (String bean : graph.keySet()) {
             if (!visited.contains(bean)) {
-                visitBean(bean, visited, sortedBeans);
+                visitBean(bean, visited, visiting, sortedBeans);
             }
         }
         return sortedBeans;
     }
 
-    private void visitBean(String bean, Set<String> visited, List<String> sortedBeans) {
+    private void visitBean(String bean, Set<String> visited,  Set<String> visiting, List<String> sortedBeans) {
+        detectCycle(bean, visiting);
+
+        if (visited.contains(bean)) {
+            return;
+        }
+
+        visiting.add(bean);
+        for (String dependency : graph.getOrDefault(bean, Collections.emptySet())) {
+            visitBean(dependency, visited, visiting, sortedBeans);
+        }
+        visiting.remove(bean);
+        visited.add(bean);
+
+        sortedBeans.add(bean);
+    }
+
+    private void detectCycle(String bean, Set<String> visiting){
         if (visiting.contains(bean)) {
             throw new DependencyCycleException("Cycle detected in dependency graph for bean: " + bean);
         }
-        if (!visited.contains(bean)) {
-            visiting.add(bean);  // Mark bean as visiting
-            performTopologicalSort(bean, visited, sortedBeans);
-            finalizeVisit(bean, visited, sortedBeans);  // Mark bean as visited
-        }
     }
 
-    private void performTopologicalSort(String bean, Set<String> visited, List<String> sortedBeans) {
-        graph.getOrDefault(bean, Collections.emptySet())
-                .forEach(dependency -> visitBean(dependency, visited, sortedBeans));
-    }
-
-    private void finalizeVisit(String bean, Set<String> visited, List<String> sortedBeans) {
-        visiting.remove(bean);  // Remove bean from visiting
-        visited.add(bean);  // Mark bean as visited
-        sortedBeans.add(bean);  // Add bean to the sorted list
-    }
 
     @Override
     public Class<?> getElement(String beanName) {
         return beanClassMap.get(beanName);
-    }
-
-    static class NoPublicConstructorException extends RuntimeException {
-        NoPublicConstructorException(Class<?> cls) {
-            super("No public constructor found for class: " + cls.getName());
-        }
     }
 }

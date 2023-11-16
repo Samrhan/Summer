@@ -12,7 +12,6 @@ public class BeanContainer {
     }
 
     // Retrieves a bean of the specified type
-    @SuppressWarnings("unchecked")
     public <T> T getBean(Class<T> beanClass) {
         return (T) beans.get(beanClass);
     }
