@@ -1,52 +1,32 @@
 package org.summer.core.bean;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.function.Function;
+
+import static org.summer.core.util.DependencyResolver.getConstructor;
+import static org.summer.core.util.DependencyResolver.getConstructorDependencies;
 
 public class BeanFactory {
 
-    private final BeanContainer beanContainer;
+    private final Function<Class<?>, Object> dependencyResolver;
 
-    public BeanFactory(BeanContainer beanContainer) {
-        this.beanContainer = beanContainer;
+    public BeanFactory(Function<Class<?>, Object> dependencyResolver) {
+        this.dependencyResolver = dependencyResolver;
     }
 
-    public void instantiateAndRegisterBeans(List<Class<?>> sortedBeans) throws ReflectiveOperationException {
-        for (Class<?> clazz : sortedBeans) {
-            Object beanInstance = instantiateBean(clazz);
-            beanContainer.registerBean(clazz, beanInstance);
-        }
-    }
-
-    private Object instantiateBean(Class<?> clazz) throws ReflectiveOperationException {
+    public Object createBean(Class<?> clazz) {
         Constructor<?> constructor = getConstructor(clazz);
         List<Object> dependencies = getConstructorDependencies(constructor)
                 .stream()
-                .map(this::resolveDependency)
+                .map(dependencyResolver)
                 .toList();
 
-        return constructor.newInstance(dependencies.toArray());
-    }
-
-    private List<Class<?>> getConstructorDependencies(Constructor<?> constructor) {
-        return List.of(constructor.getParameterTypes());
-    }
-
-    private Constructor<?> getConstructor(Class<?> clazz) {
-        Constructor<?>[] constructors = clazz.getConstructors();
-        if (constructors.length == 0) {
-            throw new NoPublicConstructorException(clazz);
-        }
-        return constructors[0];
-    }
-
-    private Object resolveDependency(Class<?> dependencyClass) {
-        return beanContainer.getBean(dependencyClass);
-    }
-
-    static class NoPublicConstructorException extends RuntimeException {
-        NoPublicConstructorException(Class<?> cls) {
-            super("No public constructor found for class: " + cls.getName());
+        try {
+            return constructor.newInstance(dependencies.toArray());
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
         }
     }
 }

@@ -4,39 +4,46 @@ import org.summer.core.bean.BeanContainer;
 import org.summer.core.bean.BeanFactory;
 import org.summer.core.bean.BeanScanner;
 import org.summer.core.bean.BeanDependencyGraph;
-import org.summer.core.util.DependencyResolver;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import static org.summer.core.util.DependencyResolver.getDependenciesForClass;
+
 public class ApplicationContext {
 
-    private final BeanScanner beanScanner;
-    private final BeanFactory beanFactory;
-    private final DependencyResolver dependencyResolver;
+    private final BeanContainer beanContainer;
 
     public ApplicationContext() {
-        BeanContainer beanContainer = new BeanContainer();
-
-        this.beanFactory = new BeanFactory(beanContainer);
-        this.beanScanner = new BeanScanner();
-
-        this.dependencyResolver = new DependencyResolver();
+        beanContainer = new BeanContainer();
     }
 
-    public void initialize(String basePackage) throws IOException, ReflectiveOperationException {
-        Set<Class<?>> classes = beanScanner.scanForBeanClasses(basePackage);
-        List<Class<?>> sortedBeans = orderDependencies(classes);
+    public void initialize(String basePackage) throws IOException {
+        List<Class<?>> beans = scanBeans(basePackage);
+        registerBeans(beans);
+    }
 
-        beanFactory.instantiateAndRegisterBeans(sortedBeans);
+    private void registerBeans(List<Class<?>> sortedBeans) {
+        BeanFactory beanFactory = new BeanFactory(beanContainer::getBean);
+
+        for(Class<?> clazz: sortedBeans) {
+            Object bean = beanFactory.createBean(clazz);
+            beanContainer.registerBean(clazz, bean);
+        }
+    }
+
+    private List<Class<?>> scanBeans(String basePackage) throws IOException {
+        BeanScanner beanScanner = new BeanScanner();
+        Set<Class<?>> classes = beanScanner.scanForBeanClasses(basePackage);
+        return orderDependencies(classes);
     }
 
     private List<Class<?>> orderDependencies(Set<Class<?>> classes){
         BeanDependencyGraph beanDependencyGraph = new BeanDependencyGraph();
 
         for (Class<?> clazz : classes) {
-            List<Class<?>> dependencies = dependencyResolver.getDependenciesForClass(clazz);
+            List<Class<?>> dependencies = getDependenciesForClass(clazz);
             beanDependencyGraph.addElement(clazz, dependencies);
         }
 

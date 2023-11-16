@@ -12,12 +12,16 @@ public class DependencyResolver {
      * @param clazz The class to analyze.
      * @return A list of classes representing the constructor parameters.
      */
-    public List<Class<?>> getDependenciesForClass(Class<?> clazz) {
+    public static List<Class<?>> getDependenciesForClass(Class<?> clazz) {
         Constructor<?> constructor = getConstructor(clazz);
         return Arrays.stream(constructor.getParameterTypes()).collect(Collectors.toList());
     }
 
-    private Constructor<?> getConstructor(Class<?> clazz) {
+    public static List<Class<?>> getConstructorDependencies(Constructor<?> constructor) {
+        return List.of(constructor.getParameterTypes());
+    }
+
+    public static Constructor<?> getConstructor(Class<?> clazz) {
         Constructor<?>[] constructors = clazz.getDeclaredConstructors();
         if (constructors.length == 0) {
             throw new NoPublicConstructorException(clazz);
