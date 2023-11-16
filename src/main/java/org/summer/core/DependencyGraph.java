@@ -1,6 +1,7 @@
-package org.summer.core.dependency;
+package org.summer.core;
 
-import org.summer.core.dependency.exception.DependencyCycleException;
+import org.summer.core.bean.exception.DependencyCycleException;
+import org.summer.core.bean.exception.DependencyNotInGraphException;
 
 import java.util.List;
 
@@ -15,13 +16,7 @@ public interface DependencyGraph<T> {
      * Sorts or resolves the dependencies in the graph.
      * @return A list representing the sorted order of the elements.
      * @throws DependencyCycleException If a cycle is detected in the dependencies.
+     * @throws DependencyNotInGraphException If a dependency is not in the graph.
      */
-    List<T> build() throws DependencyCycleException;
-
-    /**
-     * Retrieves an element from the graph.
-     * @param identifier An identifier for the element.
-     * @return The retrieved element.
-     */
-    T getElement(String identifier);
+    List<T> build() throws DependencyCycleException, DependencyNotInGraphException;
 }

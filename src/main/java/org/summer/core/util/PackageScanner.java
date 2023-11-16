@@ -1,4 +1,4 @@
-package org.summer.core;
+package org.summer.core.util;
 
 import java.io.File;
 import java.io.IOException;

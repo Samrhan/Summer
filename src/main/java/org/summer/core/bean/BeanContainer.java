@@ -1,4 +1,4 @@
-package org.summer.core;
+package org.summer.core.bean;
 
 import java.util.HashMap;
 import java.util.Map;
