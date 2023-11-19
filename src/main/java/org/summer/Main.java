@@ -1,9 +1,10 @@
 package org.summer;
-
-import org.summer.core.ApplicationContext;
+import org.summer.core.ApplicationContextFactory;
 
 public class Main {
-    public static void main(String[] args) throws Exception {
-        new ApplicationContext().initialize("org.summer");
+    public static void main(String[] args)  {
+        ApplicationContextFactory
+                .getDefaultApplicationContext()
+                .initialize("org.summer");
     }
 }

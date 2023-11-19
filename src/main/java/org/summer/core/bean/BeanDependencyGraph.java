@@ -1,8 +1,8 @@
 package org.summer.core.bean;
 
-import org.summer.core.DependencyGraph;
 import org.summer.core.bean.exception.DependencyCycleException;
 import org.summer.core.bean.exception.DependencyNotInGraphException;
+import org.summer.core.util.DependencyGraph;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +31,7 @@ public class BeanDependencyGraph implements DependencyGraph<Class<?>> {
 
     @Override
     public List<Class<?>> build() throws DependencyCycleException, DependencyNotInGraphException {
-         return new ArrayList<>(topologicalSort());
+        return new ArrayList<>(topologicalSort());
     }
 
     /**
@@ -53,7 +53,7 @@ public class BeanDependencyGraph implements DependencyGraph<Class<?>> {
         return sortedBeans;
     }
 
-    private void visitBean(Class<?> bean, Set<Class<?>> visited,  Set<Class<?>> visiting, List<Class<?>> sortedBeans) {
+    private void visitBean(Class<?> bean, Set<Class<?>> visited, Set<Class<?>> visiting, List<Class<?>> sortedBeans) {
         detectCycle(bean, visiting);
 
         if (visited.contains(bean)) {
@@ -62,7 +62,7 @@ public class BeanDependencyGraph implements DependencyGraph<Class<?>> {
 
         visiting.add(bean);
         Set<Class<?>> dependencies = graph.get(bean);
-        if(dependencies == null){
+        if (dependencies == null) {
             throw new DependencyNotInGraphException("Class %s isn't present in the graph".formatted(bean.getName()));
         }
         for (Class<?> dependency : dependencies) {
@@ -74,7 +74,7 @@ public class BeanDependencyGraph implements DependencyGraph<Class<?>> {
         sortedBeans.add(bean);
     }
 
-    private void detectCycle(Class<?> bean, Set<Class<?>> visiting){
+    private void detectCycle(Class<?> bean, Set<Class<?>> visiting) {
         if (visiting.contains(bean)) {
             throw new DependencyCycleException("Cycle detected in dependency graph for bean: %s".formatted(bean));
         }
