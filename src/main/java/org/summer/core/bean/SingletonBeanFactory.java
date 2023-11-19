@@ -1,7 +1,7 @@
 package org.summer.core.bean;
 
-import org.summer.core.DependencyResolver;
 import org.summer.core.BeanFactory;
+import org.summer.core.DependencyResolver;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

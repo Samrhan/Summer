@@ -1,10 +1,10 @@
 package org.summer.core.context;
 
 import org.summer.core.ApplicationContext;
+import org.summer.core.BeanFactory;
 import org.summer.core.BeanStore;
 import org.summer.core.DependencyManager;
 import org.summer.core.annotation.Component;
-import org.summer.core.BeanFactory;
 import org.summer.core.util.PackageScanner;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public class SingletonBasedApplicationContext implements ApplicationContext {
     }
 
     @Override
-    public void initialize(String basePackage)  {
+    public void initialize(String basePackage) {
         List<Class<?>> beans = scanBeans(basePackage);
         registerBeans(beans);
     }

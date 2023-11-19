@@ -1,6 +1,5 @@
 package org.summer.core;
 
-import org.summer.core.bean.BeanDependencyGraph;
 import org.summer.core.bean.BeanDependencyManager;
 import org.summer.core.bean.SingletonBeanContainer;
 import org.summer.core.bean.SingletonBeanFactory;
