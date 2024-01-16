@@ -7,7 +7,12 @@ import java.util.Map;
 
 public class SingletonBeanContainer implements BeanStore {
 
-    private final Map<Class<?>, Object> beans = new HashMap<>();
+    private final Map<Class<?>, Object> beans;
+
+    {
+        beans = new HashMap<>();
+        beans.put(BeanStore.class, this);
+    }
 
     // Registers a singleton bean
     public <T> void registerBean(Class<T> beanClass, T beanInstance) {

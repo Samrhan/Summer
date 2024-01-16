@@ -18,7 +18,7 @@ public class ResourcesScanner implements PackageScanner {
         String path = convertPackageNameToPath(packageName);
         Set<File> dirs = getDirectoriesFromResources(classLoader, path);
 
-        return dirs.parallelStream()
+        return dirs.stream()
                 .flatMap(directory -> findClasses(directory, packageName));
 
     }
@@ -43,7 +43,6 @@ public class ResourcesScanner implements PackageScanner {
         return dirs;
     }
 
-    @Override
     public Stream<Class<?>> findClasses(File directory, String packageName) {
         if (!directory.exists()) {
             return Stream.empty();
@@ -59,8 +58,8 @@ public class ResourcesScanner implements PackageScanner {
         if (file.isDirectory()) {
             return findClasses(file, packageName + "." + file.getName());
         } else if (file.getName().endsWith(".class")) {
-            Class<?> cls = loadClass(file, packageName);
-            classStream = Stream.of(cls);
+            Class<?> clazz = loadClass(file, packageName);
+            classStream = Stream.of(clazz);
         }
 
         return classStream;

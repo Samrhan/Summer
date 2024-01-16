@@ -45,8 +45,8 @@ public class DependencyReflectionUtil {
     }
 
     static class NoPublicConstructorException extends RuntimeException {
-        NoPublicConstructorException(Class<?> cls) {
-            super("No public constructor found for class: " + cls.getName());
+        NoPublicConstructorException(Class<?> clazz) {
+            super("No public constructor found for class: " + clazz.getName());
         }
     }
 }

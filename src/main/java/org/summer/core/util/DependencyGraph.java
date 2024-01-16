@@ -13,12 +13,8 @@ import java.util.*;
 public class DependencyGraph<T> {
     private final Map<T, Set<T>> graph = new HashMap<>();
 
-    public void addElement(T cls, List<T> dependencies) {
-        addBeanClass(cls, dependencies);
-    }
-
-    void addBeanClass(T cls, List<T> dependencies) {
-        graph.put(cls, new HashSet<>(dependencies));
+    public void addElement(T element, List<T> dependencies) {
+        graph.put(element, new HashSet<>(dependencies));
     }
 
     public List<T> build() throws DependencyCycleException, DependencyNotInGraphException {
